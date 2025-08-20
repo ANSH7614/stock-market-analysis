@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import yfinance as yf
+
+# Download stock data (Apple, Google, Amazon for example)
+stocks = yf.download(["AAPL", "GOOG", "AMZN"], start="2022-01-01", end="2023-12-31")["Close"]
+
+
+returns = stocks.pct_change().dropna().to_numpy()
+
+rolling_50 = stocks.rolling(window=50).mean()
+rolling_200 = stocks.rolling(window=200).mean()
+
+volatility = np.std(returns, axis=0)
+
+# Plot 1: Stock prices with moving averages
+plt.figure(figsize=(12, 6))
+plt.plot(stocks.index, stocks["AAPL"], label="AAPL Price", color="blue")
+plt.plot(rolling_50.index, rolling_50["AAPL"], label="50-day MA", color="orange")
+plt.plot(rolling_200.index, rolling_200["AAPL"], label="200-day MA", color="red")
+plt.title("Apple Stock Price with Moving Averages")
+plt.xlabel("Date")
+plt.ylabel("Price (USD)")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plot 2: Correlation heatmap using Matplotlib
+corr = np.corrcoef(returns.T)
+fig, ax = plt.subplots(figsize=(6, 5))
+cax = ax.matshow(corr, cmap="coolwarm")
+fig.colorbar(cax)
+ax.set_xticks(range(len(stocks.columns)))
+ax.set_yticks(range(len(stocks.columns)))
+ax.set_xticklabels(stocks.columns)
+ax.set_yticklabels(stocks.columns)
+plt.title("Stock Returns Correlation Heatmap")
+plt.show()
+
+# Plot 3: Histogram of daily returns
+plt.figure(figsize=(8, 5))
+plt.hist(returns[:, 0], bins=50, alpha=0.7, color="purple")
+plt.title("Distribution of AAPL Daily Returns")
+plt.xlabel("Daily Return")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.show()
+
+print("Volatility of Stocks:", dict(zip(stocks.columns, volatility)))
